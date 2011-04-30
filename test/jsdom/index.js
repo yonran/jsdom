@@ -1,5 +1,5 @@
-var sys = require("sys"),
-    path = require("path");
+var path = require("path"),
+    fs   = require("fs");
     
 exports.tests = {
 
@@ -490,8 +490,7 @@ bye = bye + "bye";\
                  "123" === a.getAttributeNode('id').nodeValue);
     },
     auto_tostring : function() {
-      var fs     = require("fs"),
-          buffer = fs.readFileSync(__dirname + "/files/env.html"),
+      var buffer = fs.readFileSync(__dirname + "/files/env.html"),
           caught = false,
           dom    = null,
           count  = 0;
@@ -511,6 +510,70 @@ bye = bye + "bye";\
       var window = jsdom.jsdom("").createWindow();
       assertTrue('document.location and window.location', 
                    window.document.location === window.location);
+    },
+
+    script_execution_in_body : function() {
+      var window, caught = false;
+      
+      try {
+        window = jsdom.jsdom('<html><body><script>document.body.innerHTML = "monkey"</script></body></html>').createWindow();
+      } catch (e) {
+        console.log(e.stack)
+        caught = true;
+      }
+      assertFalse('execution should work as expected', caught);
+    },
+
+    mutation_events : function() {
+      var document = jsdom.jsdom();
+      document.implementation.addFeature('MutationEvents', '2.0');
+      var created = '';
+      var removed = '';
+      document.addEventListener('DOMNodeInserted', function(ev) {
+        created += ev.target.tagName;
+      });
+      document.addEventListener('DOMNodeRemoved', function(ev) {
+        removed += ev.target.tagName;
+      });
+      var h1 = document.createElement('h1');
+      var h2 = document.createElement('h2');
+      var h3 = document.createElement('h3');
+      document.body.appendChild(h2);
+      document.body.insertBefore(h1, h2);
+      document.body.insertBefore(h3, null);
+      assertEquals("an event should be dispatched for each created element", 'H2H1H3', created);
+      document.body.removeChild(h1);
+      document.body.insertBefore(h3, h2);
+      assertEquals("an event should be dispatched for each removed element", 'H1H3', removed);
+    },
+
+    remove_listener_in_handler: function() {
+      var document = jsdom.jsdom();
+      var h1 = 0, h2 = 0;
+
+      // Event handler that removes itself
+      function handler1() {
+        h1++;
+        document.removeEventListener('click', handler1);
+      }
+
+      function handler2() {
+        h2++;
+      }
+
+      document.addEventListener('click', handler1);
+      document.addEventListener('click', handler2);
+
+      var ev = document.createEvent('MouseEvents');
+      ev.initEvent('click', true, true);
+
+      document.dispatchEvent(ev);
+      assertEquals("handler1 must be called once", 1, h1);
+      assertEquals("handler2 must be called once", 1, h2);
+
+      document.dispatchEvent(ev);
+      assertEquals("handler1 must be called once", 1, h1);
+      assertEquals("handler2 must be called twice", 2, h2);
     },
 
     childNodes_updates_on_insertChild : function() {
@@ -557,5 +620,17 @@ bye = bye + "bye";\
       assertEquals('selected does not set default', false, option0.defaultSelected);
       assertEquals('should deselect others', false, option1.selected);
       assertEquals('unchanged', true, option1.defaultSelected);
+    },
+    case_sensitivity_of_markup_missing_html_and_body : function(){
+        var spaces = /[ \n]*/g,
+            doc1 = jsdom.html("<HTML><BODY></BODY></HTML>").outerHTML.replace(spaces, ''),
+            doc2 = jsdom.html("<html><BODY></Body></HTML>").outerHTML.replace(spaces, ''),
+            doc3 = jsdom.html("<html><body></body></html>").outerHTML.replace(spaces, ''),
+            doc4 = jsdom.html("<body></body>").outerHTML.replace(spaces, ''),
+            doc5 = jsdom.html("").outerHTML.replace(spaces, '');
+
+        assertTrue('they should all serialize the same',
+            doc1 === doc2 && doc2 == doc3 && doc3 === doc4 && doc4 == doc5)
+        
     }
 };
