@@ -1956,6 +1956,7 @@ testNode = nodeList.item(0);
 * @see http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/level-one-html#ID-40057551
 */
 HTMLCollection04 : function () {
+      debugger;
    var success;
     if(checkInitialization(builder, "HTMLCollection04") != null) return;
     var nodeList;
@@ -11341,6 +11342,7 @@ HTMLModElement02 : function () {
       doc = load(docRef, "doc", "mod");
       nodeList = doc.getElementsByTagName("ins");
       assertSize("Asize",1,nodeList);
+
 testNode = nodeList.item(0);
       vdatetime = testNode.dateTime;
 
