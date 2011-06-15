@@ -4,8 +4,7 @@ var vows = require('vows'),
 
 vows.describe('node-proxy').addBatch({
     "The Assertion module": {
-        topic: new core.NodeList({_version:0}, function() {return [1,2,3,4,5,6,7,8,9,0];}),
-        /*
+        topic: core.createArrayLike(new core.NodeList({_version:0}, function() {return [1,2,3,4,5,6,7,8,9,0];})),
         "`equal`": function (n) {
           for (var i = 0; i < 100000; i++) {
           assert.equal(10, n.length);
@@ -18,6 +17,7 @@ vows.describe('node-proxy').addBatch({
           assert.equal(7, n.item(6));
           }
         },
+        /*
         "`equal2`": function (n) {
           for (var i = 0; i < 100000; i++) {
           assert.equal(10, n.length);
@@ -30,18 +30,21 @@ vows.describe('node-proxy').addBatch({
           assert.equal(7, n[6]);
           }
         },
+        */
+        /*
+        
         'another': function(n) {
           for (var i = 0; i < 1000000; i++) {
             assert.equal(undefined, n['zz' + i]);
           }
         },
-        */
         'single': function(n) {
           console.log('[0]:');
           assert.equal(1, n[0]);
           console.log('item(0):');
           assert.equal(1, n.item(0));
         },
+        */
     }
 }).export(module);
 
